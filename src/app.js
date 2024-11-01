@@ -3,33 +3,55 @@ import { fetchProducts } from './api/products.js';
 let allProducts = [];
 let displayedCount = 0;
 
+function truncateDescription(description, wordLimit = 20) {
+	const words = description.split(' ');
+	return words.length > wordLimit
+		? words.slice(0, wordLimit).join(' ') + '...'
+		: description;
+}
+
 function displayProducts(products) {
-	const productContainer = document.createElement('div');
-	productContainer.className = 'product-container';
+	const productContainer = document.querySelector('.products__cards');
+	const showMoreBtn = document.getElementById('showMoreBtn');
+
+	productContainer.innerHTML = '';
 
 	const limitedProducts = products.slice(displayedCount, displayedCount + 4);
 
-	limitedProducts.forEach(product => {
+	limitedProducts.forEach((product, index) => {
 		const productCard = document.createElement('div');
 		productCard.className = 'product-card';
 		productCard.innerHTML = `
-            <h2>${product.title}</h2>
-            <img src="${product.image}" alt="${product.title}" />
-            <p>Price: $${product.price}</p>
-            <p>${product.description}</p>
-        `;
+			<div class="product__card">
+				<img class="product__card-img" src="${product.image}" alt="${product.title}" />
+				<h3 class="product__card-title">${product.title}</h3>
+				<span class="product__card-desc">${truncateDescription(
+					product.description
+				)}</span>
+				<span class="product__card-price">${Math.round(product.price)} $</span>
+				<button class="product__card-btn" data-index="${
+					displayedCount + index
+				}">Удалить</button>
+			</div>
+		`;
+
+		const deleteButton = productCard.querySelector('.product__card-btn');
+		deleteButton.addEventListener('click', () => deleteProduct(product.id));
+
 		productContainer.appendChild(productCard);
 	});
 
-	document.body.appendChild(productContainer);
 	displayedCount += limitedProducts.length;
 
-	if (displayedCount < products.length) {
-		document.getElementById('showMoreBtn').style.display = 'block';
-	} else {
-		document.getElementById('showMoreBtn').style.display = 'none';
-	}
+	showMoreBtn.style.display =
+		displayedCount < products.length ? 'block' : 'none';
 }
+
+const deleteProduct = productId => {
+	allProducts = allProducts.filter(product => product.id !== productId);
+	displayedCount = 0;
+	displayProducts(allProducts);
+};
 
 const loadProducts = async () => {
 	try {
