@@ -1,21 +1,12 @@
-import { fetchProducts } from './api/products.js';
+import { fetchProducts, deleteProduct } from './api/products.js';
+import { truncateDescription } from './constants/BaseConstants.js';
 
 let allProducts = [];
 let displayedCount = 0;
 
-function truncateDescription(description, wordLimit = 20) {
-	const words = description.split(' ');
-	return words.length > wordLimit
-		? words.slice(0, wordLimit).join(' ') + '...'
-		: description;
-}
-
 function displayProducts(products) {
 	const productContainer = document.querySelector('.products__cards');
 	const showMoreBtn = document.getElementById('showMoreBtn');
-
-	productContainer.innerHTML = '';
-
 	const limitedProducts = products.slice(displayedCount, displayedCount + 4);
 
 	limitedProducts.forEach((product, index) => {
@@ -36,7 +27,7 @@ function displayProducts(products) {
 		`;
 
 		const deleteButton = productCard.querySelector('.product__card-btn');
-		deleteButton.addEventListener('click', () => deleteProduct(product.id));
+		deleteButton.addEventListener('click', () => deleteProductById(product.id));
 
 		productContainer.appendChild(productCard);
 	});
@@ -47,10 +38,16 @@ function displayProducts(products) {
 		displayedCount < products.length ? 'block' : 'none';
 }
 
-const deleteProduct = productId => {
-	allProducts = allProducts.filter(product => product.id !== productId);
-	displayedCount = 0;
-	displayProducts(allProducts);
+const deleteProductById = async (productId) => {
+	try {
+		await deleteProduct(productId);
+
+		allProducts = allProducts.filter(product => product.id !== productId);
+		displayedCount = 0;
+		displayProducts(allProducts);
+	} catch (error) {
+		console.error('Failed to delete product:', error);
+	}
 };
 
 const loadProducts = async () => {
