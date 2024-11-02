@@ -4,67 +4,75 @@ import { truncateDescription } from './constants/BaseConstants.js';
 let allProducts = [];
 let displayedCount = 0;
 
-function displayProducts(products) {
-	const productContainer = document.querySelector('.products__cards');
-	const showMoreBtn = document.getElementById('showMoreBtn');
-	const limitedProducts = products.slice(displayedCount, displayedCount + 4);
+const productsCards = document.querySelector('.products__cards');
+const showMoreBtn = document.querySelector('.products__show-more-btn');
 
-	limitedProducts.forEach((product, index) => {
-		const productCard = document.createElement('div');
-		productCard.className = 'product-card';
-		productCard.innerHTML = `
-			<div class="product__card">
-				<img class="product__card-img" src="${product.image}" alt="${product.title}" />
-				<h3 class="product__card-title">${product.title}</h3>
-				<span class="product__card-desc">${truncateDescription(
+function updateShowMoreButton() {
+	showMoreBtn.style.display =
+		displayedCount < allProducts.length ? 'block' : 'none';
+}
+
+function createProductCard(product) {
+	const productsCard = document.createElement('div');
+	productsCard.classList.add('products__card');
+	productsCard.setAttribute('data-id', product.id);
+
+	productsCard.innerHTML = `
+        <img class="products__card-img" src="${product.image}" alt="${
+		product.title
+	}" />
+        <h3 class="products__card-title">${product.title}</h3>
+        <span class="products__card-desc">${truncateDescription(
 					product.description
 				)}</span>
-				<span class="product__card-price">${Math.round(product.price)} $</span>
-				<button class="product__card-btn" data-index="${
-					displayedCount + index
+        <span class="products__card-price">${Math.round(product.price)} $</span>
+        <button class="products__card-delete-btn" data-id="${
+					product.id
 				}">Удалить</button>
-			</div>
-		`;
+    `;
 
-		const deleteButton = productCard.querySelector('.product__card-btn');
-		deleteButton.addEventListener('click', () => deleteProductById(product.id));
+	const deleteButton = productsCard.querySelector('.products__card-delete-btn');
+	deleteButton.addEventListener('click', () =>
+		deleteProductById(product.id, productsCard)
+	);
 
-		productContainer.appendChild(productCard);
+	return productsCard;
+}
+
+function displayProducts(products) {
+	const limitedProducts = products.slice(displayedCount, displayedCount + 4);
+
+	limitedProducts.forEach(product => {
+		const productsCard = createProductCard(product);
+		productsCards.appendChild(productsCard);
 	});
 
 	displayedCount += limitedProducts.length;
 
-	showMoreBtn.style.display =
-		displayedCount < products.length ? 'block' : 'none';
+	updateShowMoreButton();
 }
 
-const deleteProductById = async (productId) => {
-	try {
-		await deleteProduct(productId);
+const deleteProductById = async (productId, productCardElement) => {
+	await deleteProduct(productId);
 
-		allProducts = allProducts.filter(product => product.id !== productId);
-		displayedCount = 0;
-		displayProducts(allProducts);
-	} catch (error) {
-		console.error('Failed to delete product:', error);
+	productsCards.removeChild(productCardElement);
+	allProducts = allProducts.filter(product => product.id !== productId);
+
+	displayedCount--;
+
+	if (displayedCount < allProducts.length) {
+		const nextProduct = allProducts[displayedCount];
+		const newProductCard = createProductCard(nextProduct);
+		productsCards.appendChild(newProductCard);
+		displayedCount++;
 	}
+
+	updateShowMoreButton();
 };
 
-const loadProducts = async () => {
-	try {
-		allProducts = await fetchProducts();
-		displayProducts(allProducts);
-	} catch (error) {
-		console.error('Failed to load products:', error);
-	}
-};
+showMoreBtn.addEventListener('click', () => displayProducts(allProducts));
 
-const showMoreProducts = () => {
+document.addEventListener('DOMContentLoaded', async () => {
+	allProducts = await fetchProducts();
 	displayProducts(allProducts);
-};
-
-loadProducts();
-
-document
-	.getElementById('showMoreBtn')
-	.addEventListener('click', showMoreProducts);
+});

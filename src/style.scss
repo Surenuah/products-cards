@@ -4,6 +4,7 @@ $title-color: #333;
 $desc-color: rgba(116, 122, 129, 1);
 $price-color: rgba(38, 133, 228, 1);
 $btn-bg-color: rgba(244, 244, 244, 1);
+$show-more-btn-hover-color: rgba(0, 93, 186, 1);
 
 * {
 	padding: 0;
@@ -27,10 +28,11 @@ body {
 		flex-wrap: wrap;
 		justify-content: center;
 		gap: 20px;
+		width: 100%;
 	}
 
-	#showMoreBtn {
-		width: 55%;
+	&__show-more-btn {
+		width: fit-content;
 		height: 50px;
 		margin-top: 20px;
 		padding: 10px 20px;
@@ -39,10 +41,15 @@ body {
 		border: none;
 		border-radius: 16px;
 		cursor: pointer;
+		transition: all 0.5s ease-in-out;
+
+		&:hover {
+			background-color: $show-more-btn-hover-color;
+		}
 	}
 }
 
-.product__card {
+.products__card {
 	display: flex;
 	flex-direction: column;
 	width: 250px;
@@ -85,12 +92,18 @@ body {
 		font-size: 24px;
 	}
 
-	&-btn {
+	&-delete-btn {
 		border-radius: 16px;
 		background-color: $btn-bg-color;
 		color: $desc-color;
 		height: 40px;
 		border: none;
 		cursor: pointer;
+		transition: all 0.5s ease-in-out;
+
+		&:hover {
+			color: white;
+			background-color: red;
+		}
 	}
 }
